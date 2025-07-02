@@ -1,0 +1,600 @@
+import React, { useState, useEffect } from "react";
+import dayjs from "dayjs";
+
+import {
+  Search,
+  Plus,
+  AlertTriangle,
+  Clock,
+  CheckCircle,
+  Eye,
+  Edit,
+  Trash2,
+  User,
+} from "lucide-react";
+
+import { userStore, sidebarStore } from "../store/userStore";
+import RemarksPopup from "./RemarksPopup";
+
+const AdminRequest = () => {
+  const { activeUser, clearUser } = userStore();
+  const { open } = sidebarStore();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("Pending");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [isEditing, setIsEditing] = useState({});
+  const [remarkPopup, setRemarkPopup] = useState({
+    open: false,
+    faultId: null,
+  });
+  const [remarkText, setRemarkText] = useState("");
+  const [complaints, setComplaints] = useState([]);
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/complaintsAdmin`
+        );
+        if (!response.ok) {
+          throw new Error("Failed to fetch complaints");
+        }
+
+        const data = await response.json();
+        setComplaints(data.complaints);
+        console.log("checking", data); // assuming response = { complaints: [...] }
+      } catch (error) {
+        console.error("Error fetching complaints:", error);
+      }
+    };
+
+    if (activeUser.infoid) {
+      fetchComplaints();
+    }
+  }, [activeUser.infoid]);
+ 
+
+  const filteredComplaints = complaints.filter((complaint) => {
+     const searchFields = [
+       complaint.id,
+       complaint.userId,
+       complaint.name,
+       complaint.rollno,
+       complaint.mailid,
+       complaint.role,
+       complaint.department,
+       complaint.batch,
+       complaint.systemType,
+       complaint.serialNumber,
+       complaint.rdepartment,
+       complaint.lab,
+       complaint.problemType,
+       complaint.details,
+       complaint.technicianInfo,
+     ];
+ 
+     const matchesSearch = searchFields.some((field) =>
+       field?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+     );
+ 
+     const matchesStatus =
+       statusFilter === "all" || complaint.status === statusFilter;
+ 
+   
+     return matchesSearch && matchesStatus ;
+   });
+  const [updatedComplaints, setUpdatedComplaints] = useState({});
+  const [editAcceptance, setEditAcceptance] = useState({});
+  const [technicians, setTechnicians] = useState([]);
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/technician`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch complaints");
+        }
+
+        const data = await response.json();
+        setTechnicians(data.technicians);
+        console.log("checking", data); // assuming response = { complaints: [...] }
+      } catch (error) {
+        console.error("Error fetching complaints:", error);
+      }
+    };
+
+   
+      fetchComplaints();
+    
+  }, []);
+  
+
+  const handleFieldChange = (id, field, value) => {
+    setUpdatedComplaints((prev) => {
+      const newUpdate = { ...prev[id], [field]: value };
+
+      if (field === "technicianId") {
+        const tech = technicians.find((t) => t.id === Number(value));
+        newUpdate.technicianPhone = tech?.phone || "";
+        newUpdate.status = "Ongoing";
+      }
+
+      return { ...prev, [id]: newUpdate };
+    });
+  };
+
+  // const handleSaveUpdate = async (id) => {
+  //   const payload = updatedComplaints[id];
+
+  //   try {
+  //     const res = await fetch(`http://localhost:5000/api/complaints/${id}`, {
+  //       method: "PUT",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify(payload),
+  //     });
+
+  //     if (res.ok) {
+  //       alert("Updated successfully!");
+  //     } else {
+  //       alert("Failed to update.");
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Error saving update.");
+  //   }
+  // };
+ 
+  
+  const handleSavebuttonUpdate = async (id) => {
+    const updated = updatedComplaints[id];
+    const name = updated?.technicianName || "";
+    const phone = updated?.technicianPhone || "";
+    const technicianInfo = `${name} - ${phone}`;
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/complaints/${id}/update`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            technicianId: updated?.technicianId,
+            technicianInfo,
+            status: updated?.status || "Ongoing",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Server responded with an error");
+      }
+
+      // ✅ Dynamically update the original row data
+      setComplaints((prev) =>
+        prev.map((fault) =>
+          fault.id === id
+            ? {
+                ...fault,
+                technicianId: updated?.technicianId,
+                technicianInfo,
+                status: updated?.status || "Ongoing",
+              }
+            : fault
+        )
+      );
+
+      // ✅ Exit edit mode
+      setIsEditing((prev) => ({ ...prev, [id]: false }));
+
+      // ✅ Clear the update cache
+      setUpdatedComplaints((prev) => {
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
+
+      alert("✅ Technician details successfully updated.");
+    } catch (err) {
+      console.error("❌ Failed to save update:", err);
+      alert("Failed to update technician info. Please try again.");
+    }
+  };
+  
+  
+  
+
+  const handleComplete = async (id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/complaints/${id}/update`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: "Completed",
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Server error");
+      }
+
+      // ✅ Dynamically update the row's status in local state
+      setComplaints((prev) =>
+        prev.map((fault) =>
+          fault.id === id ? { ...fault, status: "Completed" } : fault
+        )
+      );
+
+      alert("Complaint marked as completed.");
+    } catch (err) {
+      console.error("Failed to complete complaint", err);
+      alert("Failed to mark complaint as completed. Please try again.");
+    }
+  };
+  
+  const handleRemarkSubmit = async () => {
+    const { faultId } = remarkPopup;
+    await updateAcceptanceInDB(faultId, "Rejected", remarkText);
+    handleFieldChange(faultId, "Acceptance", "Rejected");
+    setUpdatedComplaints((prev) => {
+      const newData = { ...prev };
+      delete newData[faultId]; // remove if needed
+      return newData;
+    });
+    setRemarkPopup({ open: false, faultId: null });
+    setRemarkText("");
+  };
+  
+  const updateAcceptanceInDB = async (id, acceptance, remarks = "") => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/complaints/${id}/acceptance`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ Acceptance: acceptance, Remarks: remarks }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to update");
+      alert("Update successfully");
+    } catch (error) {
+      console.error("Error updating acceptance:", error);
+      alert("Error updating acceptance:", error);
+    }
+  };
+  
+
+  return (
+    <div
+      className={`relative mb-8 transform transition-all duration-500 ease-in-out
+  ${!open ? "md:ml-16" : "md:ml-4"} ml-4
+  w-[20%] sm:w-[80%] md:w-[100%] lg:w-[100%] mx-auto px-2`}
+    >
+      <div
+        className={`${
+          open ? "md:max-w-2xl sm:max-w-xl  lg:max-w-5xl" : "w-[900px]  "
+        } mx-auto`}
+      >
+        {/* Header */}
+        <div className="mb-4 flex items-center justify-between  ">
+          <h1 className="text-xl font-bold text-hardColor ">
+            Technical Faults Management
+          </h1>
+          <div className="flex items-center justify-end rounded-lg mb-4 underline   gap-2 text-darkColor text-sm">
+            <span>{activeUser.infoid.toUpperCase()}</span>{" "}
+            <User className="mr-2" />
+          </div>
+        </div>
+
+        {/* Filters + Search */}
+        <div className="bg-white rounded shadow p-3 sm:p-6 mb-4">
+                  <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                    <div className="flex flex-col sm:flex-row gap-4 w-full">
+                      <div className="relative w-full sm:max-w-md">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
+                        <input
+                          type="text"
+                          placeholder="Search faults or keywords..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 pr-10 py-2 w-full border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                        {searchTerm && (
+                          <button
+                            onClick={() => setSearchTerm("")}
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-red-500 text-sm"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+        
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm w-full sm:w-auto"
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Ongoing">In Progress</option>
+                        <option value="Completed">Resolved</option>
+                        <option value="all">All</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+        {/* Table */}
+        <div className="bg-white  rounded shadow overflow-x-auto max-h-[320px] overflow-y-auto p-2 scrollbar-thin">
+          <table className=" text-sm text-left">
+            <thead className="bg-gray-100 sticky top-0 z-10">
+              <tr>
+                {[
+                  "Fault ID",
+                  "User ID",
+                  "Name",
+
+                  "Email",
+                  "Role",
+                  "Department",
+                  "Batch",
+                  "System Type",
+                  "Serial Number",
+                  "Reporting Department",
+                  "Lab",
+                  "Problem Type",
+                  "Details",
+                  "Acceptance",
+                  "Technician Select",
+                  "Technician Info",
+                  "Status",
+                  "Created Date",
+                  "Actions",
+                ].map((head) => (
+                  <th
+                    key={head}
+                    className="px-4 py-2 text-gray-700 font-semibold whitespace-nowrap"
+                  >
+                    {head}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredComplaints.map((fault) => (
+                <tr key={fault.id} className="border-t hover:bg-gray-50">
+                  {/* -- other td fields -- */}
+                  <td className="px-4 py-2 text-blue-600 font-medium">
+                    {fault.id}
+                  </td>
+                  <td className="px-4 py-2">{fault.userId}</td>
+                  <td className="px-4 py-2">{fault.name}</td>
+                  <td className="px-4 py-2">{fault.mailid}</td>
+                  <td className="px-4 py-2">{fault.role}</td>
+                  <td className="px-4 py-2">{fault.department}</td>
+                  <td className="px-4 py-2">{fault.batch || "-"}</td>
+                  <td className="px-4 py-2">{fault.systemType}</td>
+                  <td className="px-4 py-2">{fault.serialNumber}</td>
+                  <td className="px-4 py-2">{fault.rdepartment}</td>
+                  <td className="px-4 py-2">{fault.lab}</td>
+                  <td className="px-4 py-2">{fault.problemType}</td>
+                  <td className="px-4 py-2">{fault.details}</td>
+
+                  {/* Acceptance */}
+                  <td className="px-4 py-2">
+                    {editAcceptance[fault.id] ? (
+                      <select
+                        className="border p-1 rounded"
+                        value={
+                          updatedComplaints[fault.id]?.Acceptance ||
+                          fault.Acceptance ||
+                          ""
+                        }
+                        onChange={async (e) => {
+                          const selectedValue = e.target.value;
+                          if (selectedValue === "Rejected") {
+                            setRemarkPopup({ open: true, faultId: fault.id });
+                            return;
+                          }
+                          handleFieldChange(
+                            fault.id,
+                            "Acceptance",
+                            selectedValue
+                          );
+                          await updateAcceptanceInDB(fault.id, selectedValue);
+                          setEditAcceptance((prev) => ({
+                            ...prev,
+                            [fault.id]: false,
+                          }));
+                        }}
+                      >
+                        <option value="">-- Select --</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                      </select>
+                    ) : (
+                      <button
+                        onClick={() =>
+                          setEditAcceptance((prev) => ({
+                            ...prev,
+                            [fault.id]: true,
+                          }))
+                        }
+                        className={`px-3 py-1 rounded text-white ${
+                          (updatedComplaints[fault.id]?.Acceptance ||
+                            fault.Acceptance) === "Approved"
+                            ? "bg-green-600"
+                            : (updatedComplaints[fault.id]?.Acceptance ||
+                                fault.Acceptance) === "Rejected"
+                            ? "bg-red-600"
+                            : "bg-yellow-500"
+                        }`}
+                      >
+                        {updatedComplaints[fault.id]?.Acceptance ||
+                          fault.Acceptance ||
+                          "Pending"}
+                      </button>
+                    )}
+                  </td>
+
+                  <td className="px-4 py-2">
+                    {(updatedComplaints[fault.id]?.Acceptance ||
+                      fault.Acceptance) === "Approved" ? (
+                      isEditing[fault.id] || !fault.technicianId ? (
+                        <select
+                          className="border p-1 rounded w-full"
+                          value={
+                            updatedComplaints[fault.id]?.technicianId || ""
+                          }
+                          onChange={(e) => {
+                            const selectedId = e.target.value;
+                            const selectedTech = technicians.find(
+                              (t) => t.Id === selectedId
+                            ); // capital I here
+                            handleFieldChange(
+                              fault.id,
+                              "technicianId",
+                              selectedId
+                            );
+                            handleFieldChange(
+                              fault.id,
+                              "technicianPhone",
+                              selectedTech?.phone || ""
+                            );
+                            handleFieldChange(
+                              fault.id,
+                              "technicianName",
+                              selectedTech?.name || ""
+                            );
+                          }}
+                        >
+                          <option value="">-- Select Technician --</option>
+                          {technicians.map((tech) => (
+                            <option key={tech.Id} value={tech.Id}>
+                              {" "}
+                              {/* Use Id here */}
+                              {tech.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-gray-500 italic">--</span>
+                      )
+                    ) : (
+                      <span className="text-gray-400 italic">--</span>
+                    )}
+                  </td>
+
+                  {/* Technician Info Column: Name - Phone */}
+                  <td className="px-4 py-2">
+                    {updatedComplaints[fault.id]?.technicianName &&
+                    updatedComplaints[fault.id]?.technicianPhone ? (
+                      <span className="text-gray-700 font-medium">
+                        {`${updatedComplaints[fault.id].technicianName} - ${
+                          updatedComplaints[fault.id].technicianPhone
+                        }`}
+                      </span>
+                    ) : fault.technicianInfo ? (
+                      <span className="text-gray-700 font-medium">
+                        {fault.technicianInfo}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 italic">--</span>
+                    )}
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-4 py-2 text-center">
+                    {(updatedComplaints[fault.id]?.Acceptance ||
+                      fault.Acceptance) === "Approved" ? (
+                      <span className="text-gray-800 font-semibold">
+                        {updatedComplaints[fault.id]?.status ||
+                          fault.status ||
+                          "--"}
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 italic">--</span>
+                    )}
+                  </td>
+
+                  {/* Created Date */}
+                  <td className="px-4 py-2 text-sm text-gray-500">
+                    {fault.createdAt
+                      ? dayjs(fault.createdAt).format("YYYY-MM-DD HH:mm")
+                      : "--"}
+                  </td>
+
+                  {/* Actions */}
+                  <td className="px-4 py-2 space-x-2">
+                    {(updatedComplaints[fault.id]?.Acceptance === "Approved" ||
+                      fault.Acceptance === "Approved") &&
+                    updatedComplaints[fault.id]?.status !== "Completed" &&
+                    fault.status !== "Completed" ? (
+                      <>
+                        {isEditing[fault.id] || !fault.technicianId ? (
+                          <button
+                            onClick={() => handleSavebuttonUpdate(fault.id)}
+                            className="px-3 py-1 bg-blue-600 text-white rounded"
+                          >
+                            Save
+                          </button>
+                        ) : (
+                          <div div className="flex space-x-2">
+                            <button
+                              onClick={() =>
+                                setIsEditing((prev) => ({
+                                  ...prev,
+                                  [fault.id]: true,
+                                }))
+                              }
+                              className="px-3 py-1 bg-blue-800 text-white rounded"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleComplete(fault.id)}
+                              className="px-3 py-1 bg-blue-800 text-white rounded"
+                            >
+                              Complete
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-gray-400 italic">--</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {remarkPopup.open && (
+            <RemarksPopup
+              onCancel={() => setRemarkPopup({ open: false, faultId: null })}
+              onSubmit={handleRemarkSubmit}
+              remarkText={remarkText}
+              setRemarkText={setRemarkText}
+            />
+          )}
+          {filteredComplaints.length === 0 && (
+            <div className="text-center py-12">
+              <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No faults found
+              </h3>
+              <p className="text-gray-500">
+                Try adjusting your search or filter criteria
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AdminRequest;
