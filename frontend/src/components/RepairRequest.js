@@ -95,7 +95,7 @@ function RepairRequest() {
     ECE: ["ECE Hardware Lab", "ECE VLSI Lab"],
     EIE: ["Instrumentation Lab", "Process Control Lab"],
     ISE: ["Information Systems Lab", "Database Lab"],
-    ME: ["Mechanical CAD Lab", "Thermal Lab"],
+    ME: ["Mechanical CAD Lab", "Thermal Lab1"],
     MCT: ["Mechatronics Lab 1", "Mechatronics Lab 2"],
     AGE: ["Agriculture Machinery Lab", "Soil & Water Lab"],
     AIDS: ["AI & DS Lab 1", "AI & DS Lab 2"],
