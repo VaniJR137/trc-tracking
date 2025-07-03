@@ -31,7 +31,6 @@ export default function LoginPage() {
       }
 
       const data = await res.json();
-      console.log("Login response:", data);
 
       const { role } = data;
       setUser({ infoid: userid, role });

@@ -43,7 +43,6 @@ const MonthlyReports = () => {
 
         const data = await response.json();
         setComplaints(data.complaints);
-        console.log("checking", data); // assuming response = { complaints: [...] }
       } catch (error) {
         console.error("Error fetching complaints:", error);
       }

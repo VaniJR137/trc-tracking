@@ -26,7 +26,6 @@ function RepairRequest() {
         serialNumber,
         details,
       };
-      console.log("Submitted Data:", formData);
       // Add API call or storage logic here
       try {
         const response = await fetch(
@@ -54,7 +53,6 @@ function RepairRequest() {
           setOtherLab("");
           setSerialNumber("");
           setDetails(""); 
-          console.log("Server response:", result);
         } else {
           alert("Failed to submit complaint: " + result.message);
           console.error("Error response:", result);

@@ -41,7 +41,6 @@ const AdminRequest = () => {
 
         const data = await response.json();
         setComplaints(data.complaints);
-        console.log("checking", data); // assuming response = { complaints: [...] }
       } catch (error) {
         console.error("Error fetching complaints:", error);
       }
@@ -95,7 +94,6 @@ const AdminRequest = () => {
 
         const data = await response.json();
         setTechnicians(data.technicians);
-        console.log("checking", data); // assuming response = { complaints: [...] }
       } catch (error) {
         console.error("Error fetching complaints:", error);
       }
