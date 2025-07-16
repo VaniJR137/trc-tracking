@@ -31,10 +31,19 @@ const TechnicianReport = () => {
   const [complaints, setComplaints] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
+      const token = localStorage.getItem("authToken"); // 🔑 Get token
+
       try {
         const response = await fetch(
-          `http://localhost:5000/api/complainttechnician/${activeUser.infoid}`
+          `http://localhost:5000/api/complainttechnician/${activeUser.infoid}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`, // ✅ Include token here
+            },
+          }
         );
+
         if (!response.ok) {
           throw new Error("Failed to fetch complaints");
         }
@@ -50,6 +59,7 @@ const TechnicianReport = () => {
       fetchComplaints();
     }
   }, [activeUser.infoid]);
+  
 
   const filteredComplaints = complaints.filter((complaint) => {
     const searchFields = [
@@ -190,23 +200,26 @@ const handleRemarkSubmit = async () => {
 };
   
 
-  const updateCommentsInDB = async (id, remarks) => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/comments/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ TechnicianComments: remarks }),
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Failed to update");
-      alert("Update successfully");
-    } catch (error) {
-     alert("Error updating acceptance:", error);
-    }
-  };
+const updateCommentsInDB = async (id, remarks) => {
+  try {
+    const token = localStorage.getItem("authToken"); // 🔑 Get token
+
+    const response = await fetch(`http://localhost:5000/api/comments/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // ✅ Add token here
+      },
+      body: JSON.stringify({ TechnicianComments: remarks }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || "Failed to update");
+    alert("Update successfully");
+  } catch (error) {
+    alert("Error updating acceptance: " + error.message);
+  }
+};
 
   return (
     <div

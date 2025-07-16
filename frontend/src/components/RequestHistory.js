@@ -24,12 +24,31 @@ const RequestHistory = () => {
   const [complaints, setComplaints] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
+      const token = localStorage.getItem("authToken");
+      console.log("Using token:", token);
+
+      if (!token) {
+        console.error("Token missing. Login again.");
+        return;
+      }
+
       try {
         const response = await fetch(
-          `http://localhost:5000/api/complaints/${activeUser.infoid}`
+          `http://localhost:5000/api/complaints/${activeUser.infoid}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
         if (!response.ok) {
-          throw new Error("Failed to fetch complaints");
+          const errorResponse = await response.json();
+          console.error("API returned:", errorResponse);
+          throw new Error(
+            errorResponse.message || "Failed to fetch complaints"
+          );
         }
 
         const data = await response.json();
@@ -43,6 +62,8 @@ const RequestHistory = () => {
       fetchComplaints();
     }
   }, [activeUser.infoid]);
+  
+  
   
   const filteredComplaints = complaints.filter((complaint) => {
     const searchFields = [
@@ -189,6 +210,17 @@ const RequestHistory = () => {
               </tbody>
             </table>
           </div>
+          {filteredComplaints.length === 0 && (
+                      <div className="text-center py-12">
+                        <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          No faults found
+                        </h3>
+                        <p className="text-gray-500">
+                          Try adjusting your search or filter criteria
+                        </p>
+                      </div>
+                    )}
         </div>
       </div>
     </div>

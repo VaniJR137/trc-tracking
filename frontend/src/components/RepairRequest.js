@@ -15,32 +15,36 @@ function RepairRequest() {
     const [serialNumber, setSerialNumber] = useState("");
     const [details, setDetails] = useState("");
 
-    const handleSubmit = async(e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
+
       const formData = {
         userId: activeUser.infoid,
-        rdepartment: selectedDepartment, // ✅ Add this
+        rdepartment: selectedDepartment,
         systemType: systemType === "Others" ? otherSystemType : systemType,
         problemType: problemType === "Others" ? otherProblem : problemType,
         lab: selectedLab === "Others" ? otherLab : selectedLab,
         serialNumber,
         details,
       };
-      // Add API call or storage logic here
+
       try {
+        const token = localStorage.getItem("token"); // ✅ Get token from localStorage
+
         const response = await fetch(
           "http://localhost:5000/api/requestComplaint",
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // ✅ Send token in Authorization header
             },
             body: JSON.stringify(formData),
           }
         );
-    
+
         const result = await response.json();
-    
+
         if (response.ok) {
           alert("Complaint submitted successfully!");
           setSystemType("");
@@ -49,10 +53,9 @@ function RepairRequest() {
           setOtherSystemType("");
           setProblemType("");
           setOtherProblem("");
-          setSelectedLab("");
           setOtherLab("");
           setSerialNumber("");
-          setDetails(""); 
+          setDetails("");
         } else {
           alert("Failed to submit complaint: " + result.message);
           console.error("Error response:", result);
@@ -62,6 +65,7 @@ function RepairRequest() {
         alert("An error occurred while submitting the complaint.");
       }
     };
+    
     const departmentList = [
       { name: "Biomedical Engineering", code: "BME" },
       { name: "Civil Engineering", code: "CE" },

@@ -31,10 +31,19 @@ const AdminRequest = () => {
   const [complaints, setComplaints] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
+      const token = localStorage.getItem("authToken"); // 🔑 Get JWT token
+
       try {
         const response = await fetch(
-          `http://localhost:5000/api/complaintsAdmin`
+          `http://localhost:5000/api/complaintsAdmin`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`, // ✅ Send token
+            },
+          }
         );
+
         if (!response.ok) {
           throw new Error("Failed to fetch complaints");
         }
@@ -50,6 +59,7 @@ const AdminRequest = () => {
       fetchComplaints();
     }
   }, [activeUser.infoid]);
+  
  
 
   const filteredComplaints = complaints.filter((complaint) => {
@@ -86,8 +96,16 @@ const AdminRequest = () => {
   const [technicians, setTechnicians] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
+      const token = localStorage.getItem("authToken"); // 🔑 Get JWT token
+
       try {
-        const response = await fetch(`http://localhost:5000/api/technician`);
+        const response = await fetch(`http://localhost:5000/api/technician`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`, // ✅ Attach token
+          },
+        });
+
         if (!response.ok) {
           throw new Error("Failed to fetch complaints");
         }
@@ -99,10 +117,9 @@ const AdminRequest = () => {
       }
     };
 
-   
-      fetchComplaints();
-    
+    fetchComplaints();
   }, []);
+  
   
 
   const handleFieldChange = (id, field, value) => {
@@ -142,6 +159,8 @@ const AdminRequest = () => {
  
   
   const handleSavebuttonUpdate = async (id) => {
+    const token = localStorage.getItem("authToken"); // 🔑 Get JWT token
+
     const updated = updatedComplaints[id];
     const name = updated?.technicianName || "";
     const phone = updated?.technicianPhone || "";
@@ -154,6 +173,7 @@ const AdminRequest = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ Include token
           },
           body: JSON.stringify({
             technicianId: updated?.technicianId,
@@ -167,7 +187,6 @@ const AdminRequest = () => {
         throw new Error("Server responded with an error");
       }
 
-      // ✅ Dynamically update the original row data
       setComplaints((prev) =>
         prev.map((fault) =>
           fault.id === id
@@ -181,10 +200,8 @@ const AdminRequest = () => {
         )
       );
 
-      // ✅ Exit edit mode
       setIsEditing((prev) => ({ ...prev, [id]: false }));
 
-      // ✅ Clear the update cache
       setUpdatedComplaints((prev) => {
         const copy = { ...prev };
         delete copy[id];
@@ -200,8 +217,11 @@ const AdminRequest = () => {
   
   
   
+  
 
   const handleComplete = async (id) => {
+    const token = localStorage.getItem("authToken"); // 🔑 Get token
+
     try {
       const response = await fetch(
         `http://localhost:5000/api/complaints/${id}/update`,
@@ -209,6 +229,7 @@ const AdminRequest = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ Attach token
           },
           body: JSON.stringify({
             status: "Completed",
@@ -220,7 +241,6 @@ const AdminRequest = () => {
         throw new Error("Server error");
       }
 
-      // ✅ Dynamically update the row's status in local state
       setComplaints((prev) =>
         prev.map((fault) =>
           fault.id === id ? { ...fault, status: "Completed" } : fault
@@ -233,6 +253,7 @@ const AdminRequest = () => {
       alert("Failed to mark complaint as completed. Please try again.");
     }
   };
+  
   
   const handleRemarkSubmit = async () => {
     const { faultId } = remarkPopup;
@@ -248,15 +269,21 @@ const AdminRequest = () => {
   };
   
   const updateAcceptanceInDB = async (id, acceptance, remarks = "") => {
+    const token = localStorage.getItem("authToken"); // 🔑 Get token
+
     try {
       const response = await fetch(
         `http://localhost:5000/api/complaints/${id}/acceptance`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ Add token here
+          },
           body: JSON.stringify({ Acceptance: acceptance, Remarks: remarks }),
         }
       );
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Failed to update");
       alert("Update successfully");
@@ -265,6 +292,7 @@ const AdminRequest = () => {
       alert("Error updating acceptance:", error);
     }
   };
+  
   
 
   return (

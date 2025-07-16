@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/bit.png";
 import { userStore } from "../store/userStore";
 import { jwtDecode } from "jwt-decode";
-import DOMPurify from "dompurify"; // ✅ Import DOMPurify
+import DOMPurify from "dompurify";
 
 const clientId =
   "33140679138-lp44646717dfk1vpor9gdbhb17thq3kf.apps.googleusercontent.com";
@@ -19,9 +19,7 @@ export default function LoginPage() {
     try {
       const res = await fetch("http://localhost:5000/api/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userid, password }),
       });
 
@@ -31,16 +29,21 @@ export default function LoginPage() {
       }
 
       const data = await res.json();
+      const { token } = data;
 
-      const { role } = data;
-      setUser({ infoid: userid, role });
+      if (token) {
+        localStorage.setItem("token", token);
 
-      if (role === "admin") {
-        navigate("/admin");
-      } else if (role === "technician") {
-        navigate("/technician");
-      } else if (role === "user") {
-        navigate("/user");
+        const decoded = jwtDecode(token);
+        const role = decoded.role || "user";
+
+        setUser({ infoid: userid, role });
+
+        if (role === "admin") navigate("/admin");
+        else if (role === "technician") navigate("/technician");
+        else navigate("/user");
+      } else {
+        alert("Token missing in response");
       }
     } catch (err) {
       alert("Login failed: " + err.message);
@@ -96,38 +99,39 @@ export default function LoginPage() {
             <GoogleLogin
               onSuccess={async (response) => {
                 try {
-                  const decoded = jwtDecode(response.credential);
-                  const emailid = DOMPurify.sanitize(decoded.email); // ✅ sanitize email
+                  const decodedGoogle = jwtDecode(response.credential);
+                  const emailid = DOMPurify.sanitize(decodedGoogle.email);
 
-                  const res = await fetch(
-                    "http://localhost:5000/api/auth/google",
-                    {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ emailid }),
-                    }
-                  );
+                  const res = await fetch("http://localhost:5000/api/auth/google", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ emailid }),
+                  });
 
                   if (!res.ok) {
                     const errorText = await res.text();
-                    throw new Error(
-                      `Server error: ${res.status} - ${errorText}`
-                    );
+                    throw new Error(`Server error: ${res.status} - ${errorText}`);
                   }
 
                   const data = await res.json();
-                  if (data?.user) {
-                    alert("Login successful");
-                    setUser({ infoid: emailid, role: "user" });
-                    navigate("/user");
+
+                  if (data?.token) {
+                    localStorage.setItem("token", data.token);
+
+                    const decoded = jwtDecode(data.token);
+                    const role = decoded.role || "user";
+
+                    setUser({ infoid: emailid, role });
+
+                    if (role === "admin") navigate("/admin");
+                    else if (role === "technician") navigate("/technician");
+                    else navigate("/user");
                   } else {
-                    alert(
-                      "Login failed: " + (data?.message || "Unknown error")
-                    );
+                    alert("Login failed: Missing token from server.");
                   }
                 } catch (err) {
                   console.error("Login Error:", err);
-                  alert("Login failed. Please try again.");
+                  alert("Google login failed. Please try again.");
                 }
               }}
               onError={() => {

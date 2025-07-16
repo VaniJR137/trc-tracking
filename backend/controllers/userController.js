@@ -1,4 +1,6 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = "137inav";
 const { Op } = require("sequelize");
 const { UserMail, UserCredential,UserDetails,ComplaintDetails } = require("../models/userModel");
 exports.loginUser = async (req, res) => {
@@ -13,7 +15,20 @@ exports.loginUser = async (req, res) => {
         .json({ success: false, message: "User not registered" });
     }
 
-    res.status(200).json({ success: true, message: "Login successful", user });
+    // ✅ Generate JWT token after verifying user
+    const token = jwt.sign(
+      { emailid, role: "user" }, // Optional: Use dynamic role if available
+      JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    // ✅ Return the token to the frontend
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token, // ⬅️ Send token
+      user: { emailid }, // Optional additional data
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error", error });
@@ -30,23 +45,26 @@ exports.loginWithCredentials = async (req, res) => {
       return res.status(401).json({ message: "Invalid userid or password" });
     }
 
-    if ( user.dataValues.password === password) {
-      return res.status(200).json({
-        message: "Login successful (plain text check)",
-        userid: user.userid,
-        role: user.role,
-      });
-    }
+    const isPlainPasswordMatch = user.dataValues.password === password;
+    const isHashedPasswordMatch = await bcrypt.compare(
+      password,
+      user.dataValues.password
+    );
 
-    // For all other users, use bcrypt
-    const isMatch = await bcrypt.compare(password, user.dataValues.password);
-    if (!isMatch) {
+    if (!isPlainPasswordMatch && !isHashedPasswordMatch) {
       return res.status(401).json({ message: "Invalid userid or password" });
     }
 
+    // ✅ Generate JWT Token
+    const token = jwt.sign(
+      { userid: user.Id, role: user.role }, // payload
+      JWT_SECRET,
+      { expiresIn: "1d" } // expires in 1 day
+    );
+
     res.status(200).json({
       message: "Login successful",
-      userid: user.userid,
+      token, // ⬅️ send token to frontend
       role: user.role,
     });
   } catch (error) {
@@ -54,6 +72,12 @@ exports.loginWithCredentials = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+
+
+
+
+
 
 exports.addByAdmin = async (req, res) => {
   const { Id, name, phone, password, role } = req.body;
@@ -321,3 +345,4 @@ exports.updateTechnicianComments = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+  

@@ -33,10 +33,19 @@ const MonthlyReports = () => {
   const [complaints, setComplaints] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
+      const token = localStorage.getItem("authToken"); // 🔑 Retrieve JWT token
+
       try {
         const response = await fetch(
-          `http://localhost:5000/api/complaintsAdmin`
+          `http://localhost:5000/api/complaintsAdmin`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`, // ✅ Pass token in Authorization header
+            },
+          }
         );
+
         if (!response.ok) {
           throw new Error("Failed to fetch complaints");
         }
@@ -52,6 +61,7 @@ const MonthlyReports = () => {
       fetchComplaints();
     }
   }, [activeUser.infoid]);
+  
 
   const filteredComplaints = complaints.filter((complaint) => {
     const searchFields = [

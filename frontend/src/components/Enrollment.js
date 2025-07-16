@@ -11,33 +11,39 @@ function Enrollment() {
 
      const { activeUser, clearUser } = userStore();
     const { open } = sidebarStore();
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const adminData = { Id, name, phone, password, role };
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      const adminData = { Id, name, phone, password, role };
 
-    try {
-      const response = await fetch("http://localhost:5000/api/addByAdmin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(adminData),
-      });
+      try {
+        const token = localStorage.getItem("authToken"); // 🔑 Get token
 
-      const result = await response.json();
-      if (response.ok) {
-        alert(" Registration successfully!");
-        setId("");
-        setName("");
-        setPhone("");
-        setPassword("");
-        setRole("admin");
-      } else {
-        alert("Failed: " + result.message);
+        const response = await fetch("http://localhost:5000/api/addByAdmin", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ Include JWT token here
+          },
+          body: JSON.stringify(adminData),
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert("Registration successfully!");
+          setId("");
+          setName("");
+          setPhone("");
+          setPassword("");
+          setRole("admin");
+        } else {
+          alert("Failed: " + result.message);
+        }
+      } catch (err) {
+        alert("Error submitting admin details");
+        console.error(err);
       }
-    } catch (err) {
-      alert("Error submitting admin details");
-      console.error(err);
-    }
-  };
+    };
+    
 
   return (
     <div

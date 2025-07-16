@@ -1,32 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import AdminRequest from "../components/AdminRequest";
 import Enrollment from "../components/Enrollment";
 import Reports from "../components/Reports";
-
-// Icon imports for use in DashboardLayout
-import {
-  FilePen,
-  UserPlus,
-  FileText,
-  BarChart2,
-  Users,
-  Building2,
-} from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 
 function AdminPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [activePage, setActivePage] = useState("");
 
   useEffect(() => {
-    // Match the path to a label
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/"); // 🔒 Redirect to login if no token
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode(token);
+      if (decoded.role !== "admin") {
+        navigate("/"); // 🔒 Redirect non-admin users
+      }
+    } catch (error) {
+      console.error("Invalid token:", error);
+      navigate("/"); // 🔒 Redirect if token invalid
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     const pathToLabelMap = {
       "/admin/adminrequests": "Requests",
       "/admin/enrollment": "Enrollment",
       "/admin/Report": "Reports",
-      // "/admin/technicReport": "Technician",
-      // "/admin/departmentReport": "Department",
     };
 
     const label = pathToLabelMap[location.pathname];
@@ -41,7 +48,6 @@ function AdminPage() {
         return <Enrollment />;
       case "Reports":
         return <Reports />;
-      
       default:
         return null;
     }
