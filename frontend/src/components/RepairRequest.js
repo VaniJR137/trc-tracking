@@ -1,129 +1,183 @@
-import React,{useState} from 'react'
+import React, { useState, useEffect } from "react";
 import { userStore, sidebarStore } from "../store/userStore";
-import { User } from 'lucide-react';
+import { User } from "lucide-react";
 function RepairRequest() {
-     const { activeUser, clearUser } = userStore();
-    const { open } = sidebarStore();
-    
-
+  const { activeUser, clearUser } = userStore();
+  const { open } = sidebarStore();
   const [systemType, setSystemType] = useState("");
+  const [otherSystemType, setOtherSystemType] = useState("");
+  const [problemType, setProblemType] = useState("");
+  const [otherProblem, setOtherProblem] = useState("");
+  const [otherLab, setOtherLab] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
+  const [details, setDetails] = useState("");
 
-    const [otherSystemType, setOtherSystemType] = useState("");
-    const [problemType, setProblemType] = useState("");
-    const [otherProblem, setOtherProblem] = useState("");
-    const [otherLab, setOtherLab] = useState("");
-    const [serialNumber, setSerialNumber] = useState("");
-    const [details, setDetails] = useState("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    const handleSubmit = async (e) => {
-      e.preventDefault();
+    const formData = {
+      userId: activeUser.infoid,
+      rdepartment: selectedDepartmentName,
+      systemType: systemType === "Others" ? otherSystemType : systemType,
+      problemType: problemType === "Others" ? otherProblem : problemType,
+      lab: selectedLab === "Others" ? otherLab : selectedVenue,
+      serialNumber,
+      details,
+    };
 
-      const formData = {
-        userId: activeUser.infoid,
-        rdepartment: selectedDepartment,
-        systemType: systemType === "Others" ? otherSystemType : systemType,
-        problemType: problemType === "Others" ? otherProblem : problemType,
-        lab: selectedLab === "Others" ? otherLab : selectedLab,
-        serialNumber,
-        details,
-      };
+    try {
+      const token = localStorage.getItem("token"); // ✅ Get token from localStorage
 
+      const response = await fetch(
+        "http://localhost:5000/api/requestComplaint",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ Send token in Authorization header
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Complaint submitted successfully!");
+        setSystemType("");
+        setSelectedDepartment("");
+        setSelectedVenue("");
+        setOtherSystemType("");
+        setProblemType("");
+        setOtherProblem("");
+        setOtherLab("");
+        setSerialNumber("");
+        setDetails("");
+      } else {
+        alert("Failed to submit complaint: " + result.message);
+        console.error("Error response:", result);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      alert("An error occurred while submitting the complaint.");
+    }
+  };
+  const [departmentList, setDepartmentList] = useState([]);
+  const [venueList, setVenueList] = useState([]);
+  useEffect(() => {
+    const fetchDepartments = async () => {
       try {
-        const token = localStorage.getItem("token"); // ✅ Get token from localStorage
-
+        const token = localStorage.getItem("authToken");
         const response = await fetch(
-          "http://localhost:5000/api/requestComplaint",
+          "http://localhost:5000/api/getDepartments",
           {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // ✅ Send token in Authorization header
-            },
-            body: JSON.stringify(formData),
+            headers: { Authorization: `Bearer ${token}` },
           }
         );
+        const data = await response.json();
 
-        const result = await response.json();
-
-        if (response.ok) {
-          alert("Complaint submitted successfully!");
-          setSystemType("");
-          setSelectedDepartment("");
-          setSelectedLab("");
-          setOtherSystemType("");
-          setProblemType("");
-          setOtherProblem("");
-          setOtherLab("");
-          setSerialNumber("");
-          setDetails("");
+        if (Array.isArray(data)) {
+          setDepartmentList(data); // ✅ Set only if it's an array
         } else {
-          alert("Failed to submit complaint: " + result.message);
-          console.error("Error response:", result);
+          console.error("Expected departments as array, received:", data);
+          setDepartmentList([]); // ✅ Default to empty array
         }
       } catch (error) {
-        console.error("Fetch error:", error);
-        alert("An error occurred while submitting the complaint.");
+        console.error("Error fetching departments:", error);
+        setDepartmentList([]); // ✅ Prevent UI break
       }
     };
-    
-    const departmentList = [
-      { name: "Biomedical Engineering", code: "BME" },
-      { name: "Civil Engineering", code: "CE" },
-      { name: "Computer Science & Design", code: "CSD" },
-      { name: "Computer Science & Engineering", code: "CSE" },
-      { name: "Electrical & Electronics Engineering", code: "EEE" },
-      { name: "Electronics & Communication Engineering", code: "ECE" },
-      { name: "Electronics & Instrumentation Engineering", code: "EIE" },
-      { name: "Information Science & Engineering", code: "ISE" },
-      { name: "Mechanical Engineering", code: "ME" },
-      { name: "Mechatronics Engineering", code: "MCT" },
-      { name: "Agricultural Engineering", code: "AGE" },
-      { name: "Artificial Intelligence and Data Science", code: "AIDS" },
-      { name: "Artificial Intelligence and Machine Learning", code: "AIML" },
-      { name: "Biotechnology", code: "BT" },
-      { name: "Computer Science & Business Systems", code: "CSBS" },
-      { name: "Computer Technology", code: "CT" },
-      { name: "Food Technology", code: "FT" },
-      { name: "Fashion Technology", code: "FAT" },
-      { name: "Information Technology", code: "IT" },
-      { name: "Textile Technology", code: "TT" },
-  ];
-  const departmentLabMap = {
-    BME: ["Biomedical Lab 1", "Biomedical Lab 2"],
-    CE: ["Civil Structures Lab", "Environmental Lab"],
-    CSD: ["Design Thinking Lab", "UI/UX Lab"],
-    CSE: ["CSE Programming Lab", "CSE Networking Lab"],
-    EEE: ["Power Systems Lab", "Electrical Machines Lab"],
-    ECE: ["ECE Hardware Lab", "ECE VLSI Lab"],
-    EIE: ["Instrumentation Lab", "Process Control Lab"],
-    ISE: ["Information Systems Lab", "Database Lab"],
-    ME: ["Mechanical CAD Lab", "Thermal Lab1"],
-    MCT: ["Mechatronics Lab 1", "Mechatronics Lab 2"],
-    AGE: ["Agriculture Machinery Lab", "Soil & Water Lab"],
-    AIDS: ["AI & DS Lab 1", "AI & DS Lab 2"],
-    AIML: ["Machine Learning Lab", "AI Lab"],
-    BT: ["Biotech Lab 1", "Biotech Lab 2"],
-    CSBS: ["CSBS Lab 1", "CSBS Lab 2"],
-    CT: ["Computer Technology Lab 1", "Computer Technology Lab 2"],
-    FT: ["Food Processing Lab", "Food Analysis Lab"],
-    FAT: ["Fashion Design Studio", "Textile Lab"],
-    IT: ["IT Lab 1", "IT Lab 2"],
-    TT: ["Textile Lab 1", "Fabric Manufacturing Lab"],
-  };
-  
-  
+
+    const fetchVenues = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const response = await fetch("http://localhost:5000/api/getVenues", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setVenueList(data);
+        } else {
+          console.error("Expected venues as array, received:", data);
+          setVenueList([]); // ✅ Default to empty array
+        }
+      } catch (error) {
+        console.error("Error fetching venues:", error);
+        setVenueList([]); // ✅ Prevent UI break
+      }
+    };
+
+    fetchDepartments();
+    fetchVenues();
+  }, []);
+
+  //   const departmentList = [
+  //     { name: "Biomedical Engineering", code: "BME" },
+  //     { name: "Civil Engineering", code: "CE" },
+  //     { name: "Computer Science & Design", code: "CSD" },
+  //     { name: "Computer Science & Engineering", code: "CSE" },
+  //     { name: "Electrical & Electronics Engineering", code: "EEE" },
+  //     { name: "Electronics & Communication Engineering", code: "ECE" },
+  //     { name: "Electronics & Instrumentation Engineering", code: "EIE" },
+  //     { name: "Information Science & Engineering", code: "ISE" },
+  //     { name: "Mechanical Engineering", code: "ME" },
+  //     { name: "Mechatronics Engineering", code: "MCT" },
+  //     { name: "Agricultural Engineering", code: "AGE" },
+  //     { name: "Artificial Intelligence and Data Science", code: "AIDS" },
+  //     { name: "Artificial Intelligence and Machine Learning", code: "AIML" },
+  //     { name: "Biotechnology", code: "BT" },
+  //     { name: "Computer Science & Business Systems", code: "CSBS" },
+  //     { name: "Computer Technology", code: "CT" },
+  //     { name: "Food Technology", code: "FT" },
+  //     { name: "Fashion Technology", code: "FAT" },
+  //     { name: "Information Technology", code: "IT" },
+  //     { name: "Textile Technology", code: "TT" },
+  // ];
+  // const departmentLabMap = {
+  //   BME: ["Biomedical Lab 1", "Biomedical Lab 2"],
+  //   CE: ["Civil Structures Lab", "Environmental Lab"],
+  //   CSD: ["Design Thinking Lab", "UI/UX Lab"],
+  //   CSE: ["CSE Programming Lab", "CSE Networking Lab"],
+  //   EEE: ["Power Systems Lab", "Electrical Machines Lab"],
+  //   ECE: ["ECE Hardware Lab", "ECE VLSI Lab"],
+  //   EIE: ["Instrumentation Lab", "Process Control Lab"],
+  //   ISE: ["Information Systems Lab", "Database Lab"],
+  //   ME: ["Mechanical CAD Lab", "Thermal Lab1"],
+  //   MCT: ["Mechatronics Lab 1", "Mechatronics Lab 2"],
+  //   AGE: ["Agriculture Machinery Lab", "Soil & Water Lab"],
+  //   AIDS: ["AI & DS Lab 1", "AI & DS Lab 2"],
+  //   AIML: ["Machine Learning Lab", "AI Lab"],
+  //   BT: ["Biotech Lab 1", "Biotech Lab 2"],
+  //   CSBS: ["CSBS Lab 1", "CSBS Lab 2"],
+  //   CT: ["Computer Technology Lab 1", "Computer Technology Lab 2"],
+  //   FT: ["Food Processing Lab", "Food Analysis Lab"],
+  //   FAT: ["Fashion Design Studio", "Textile Lab"],
+  //   IT: ["IT Lab 1", "IT Lab 2"],
+  //   TT: ["Textile Lab 1", "Fabric Manufacturing Lab"],
+  // };
+
   const [isOpen, setIsOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState("");
-  const [selectedLab, setSelectedLab] = useState("");
-  const [labOptions, setLabOptions] = useState([]);
+  const [selectedDepartmentName, setSelectedDepartmentName] = useState("");
 
-  const handleDepartmentSelect = (deptCode) => {
-    setSelectedDepartment(deptCode); // set department code
-    setIsOpen(!isOpen); // close dropdown
-    setSelectedLab(""); // reset lab selection
-    const labs = departmentLabMap[deptCode] || [];
-    setLabOptions(labs); // update lab options
+  const [filteredVenues, setFilteredVenues] = useState([]);
+  const [selectedVenue, setSelectedVenue] = useState("");
+  const [selectedLab, setSelectedLab] = useState("");
+  const handleDepartmentSelect = (deptId) => {
+    setSelectedDepartment(deptId);
+    const selectedDept = departmentList.find((dept) => dept.id === deptId);
+    setSelectedDepartmentName(selectedDept ? selectedDept.departmentName : "");
+    setIsOpen(false);
+
+    // Filter venues based on selected department_id
+    const filtered = venueList.filter(
+      (venue) => venue.department_id === deptId
+    );
+    setFilteredVenues(filtered);
+    console.log("Selected Department:", filtered);
   };
+
   // const handleDepartmentChange = (deptCode) => {
   //   setSelectedDepartment(""); // set department code
   //   setIsOpen(!isOpen); // close dropdown
@@ -131,7 +185,7 @@ function RepairRequest() {
   //   const labs = departmentLabMap[deptCode] || [];
   //   setLabOptions(labs); // update lab options
   // };
-  
+
   return (
     <div
       className={`relative mb-8 flex flex-col transform transition-all duration-500 ease-in-out
@@ -156,6 +210,7 @@ function RepairRequest() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6   ">
               {" "}
+              {/* Department Dropdown */}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1 text-md">
                   Department
@@ -165,40 +220,40 @@ function RepairRequest() {
                   onClick={() => setIsOpen(!isOpen)}
                 >
                   {selectedDepartment
-                    ? departmentList.find((d) => d.code === selectedDepartment)
-                        ?.name
+                    ? departmentList.find((d) => d.id === selectedDepartment)
+                        ?.departmentName
                     : "-- Select Department --"}
                 </div>
 
                 {isOpen && (
                   <div className="absolute z-10 mt-1 w-[420px] max-h-40 overflow-y-auto border border-gray-300 bg-white rounded-lg shadow-md text-sm">
-                    {departmentList.map((dept, index) => (
+                    {departmentList.map((dept) => (
                       <div
-                        key={index}
-                        onClick={() => handleDepartmentSelect(dept.code)}
-                        //  onChange={handleDepartmentChange(dept.code)}
+                        key={dept.id}
+                        onClick={() => handleDepartmentSelect(dept.id)}
                         className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                       >
-                        {dept.name}
+                        {dept.departmentName}
                       </div>
                     ))}
                   </div>
                 )}
               </div>
+              {/* Venue Dropdown */}
               <div className="">
                 <label className="block font-semibold text-gray-700 mb-1">
-                  Lab
+                  Venue
                 </label>
                 <select
-                  value={selectedLab}
-                  onChange={(e) => setSelectedLab(e.target.value)}
+                  value={selectedVenue}
+                  onChange={(e) => setSelectedVenue(e.target.value)}
                   className="w-full border border-gray-300 rounded-lg p-2.5 text-sm"
                   required
                 >
-                  <option value="">-- Select Lab --</option>
-                  {labOptions.map((lab, idx) => (
-                    <option key={idx} value={lab}>
-                      {lab}
+                  <option value="">-- Select Venue --</option>
+                  {filteredVenues.map((venue) => (
+                    <option key={venue.venueId} value={venue.venueName}>
+                      {venue.venueName}
                     </option>
                   ))}
                 </select>
@@ -311,4 +366,4 @@ function RepairRequest() {
   );
 }
 
-export default RepairRequest
+export default RepairRequest;

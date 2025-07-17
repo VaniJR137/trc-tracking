@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = "137inav";
 const { Op } = require("sequelize");
-const { UserMail, UserCredential,UserDetails,ComplaintDetails } = require("../models/userModel");
+const { UserMail, UserCredential,UserDetails,ComplaintDetails,Department,Venue } = require("../models/userModel");
 exports.loginUser = async (req, res) => {
   const { emailid } = req.body;
 
@@ -74,11 +74,6 @@ exports.loginWithCredentials = async (req, res) => {
 };
 
 
-
-
-
-
-
 exports.addByAdmin = async (req, res) => {
   const { Id, name, phone, password, role } = req.body;
 
@@ -98,6 +93,36 @@ exports.addByAdmin = async (req, res) => {
   }
 };
 
+exports.addDepartment = async (req, res) => {
+  const { departmentName } = req.body;
+
+  try {
+    await Department.create({
+      departmentName,
+    });
+
+    return res.status(201).json({ message: "Department successfully added" });
+  } catch (error) {
+    console.error("Insert error:", error);
+    return res.status(500).json({ message: "Failed to add department" });
+  }
+};
+exports.addVenue = async (req, res) => {
+  const { venueId,department_id, venueName } = req.body;
+
+  try {
+    await Venue.create({
+      venueId,
+      department_id,
+      venueName,
+    });
+
+    return res.status(201).json({ message: "Venue successfully added" });
+  } catch (error) {
+    console.error("Insert error:", error);
+    return res.status(500).json({ message: "Failed to add venue" });
+  }
+};
 
 exports.submitComplaint = async (req, res) => {
   try {
@@ -173,6 +198,26 @@ exports.submitComplaint = async (req, res) => {
   } catch (error) {
     console.error("Complaint submission error:", error.message, error.stack);
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getDepartments = async (req, res) => {
+  try {
+    const departments = await Department.findAll();
+    return res.status(200).json(departments);
+  } catch (error) {
+    console.error("Fetch departments error:", error);
+    return res.status(500).json({ message: "Failed to fetch departments" });
+  }
+};
+// Example Express Controller
+exports.getVenues = async (req, res) => {
+  try {
+    const venues = await Venue.findAll();
+    res.json(venues);  // ✅ Must send array of venues
+  } catch (error) {
+    console.error("Failed to fetch venues:", error.message);
+    res.status(500).json({ message: "Failed to fetch venues" });
   }
 };
 

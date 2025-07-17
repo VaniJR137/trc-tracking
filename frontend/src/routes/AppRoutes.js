@@ -8,6 +8,7 @@ import AdminRequest from "../components/AdminRequest";
 import Reports from "../components/Reports";
 import Enrollment from "../components/Enrollment";
 import TechnicianReport from "../components/TechnicianReport";
+import VenueAdding from "../components/VenueAdding";
 import { jwtDecode } from "jwt-decode";
 
 function AppRoutes() {
@@ -33,6 +34,7 @@ function AppRoutes() {
         <Route path="adminrequests" element={<AdminRequest />} />
         <Route path="Report" element={<Reports />} />
         <Route path="enrollment" element={<Enrollment />} />
+        <Route path="venueAdding" element={<VenueAdding />} />
       </Route>
 
       {/* Technician Routes */}

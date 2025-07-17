@@ -13,6 +13,7 @@ import {
   BarChart2,
   Users,
   Building2,
+  MapPin,
 } from "lucide-react";
 import { userStore, sidebarStore } from "../store/userStore";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -35,6 +36,11 @@ const DashboardLayout = ({ children, onMenuSelect }) => {
         label: "Enrollment",
         icon: <UserPlus size={20} />,
         path: "/admin/enrollment",
+      },
+      {
+        label: "Venue",
+        icon: <MapPin size={20} />,
+        path: "/admin/venueAdding",
       },
       {
         label: "Reports",

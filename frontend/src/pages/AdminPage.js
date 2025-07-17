@@ -4,6 +4,7 @@ import DashboardLayout from "../components/DashboardLayout";
 import AdminRequest from "../components/AdminRequest";
 import Enrollment from "../components/Enrollment";
 import Reports from "../components/Reports";
+import VenueAdding from "../components/VenueAdding"; // Assuming VenueAdding is imported
 import { jwtDecode } from "jwt-decode";
 
 function AdminPage() {
@@ -34,6 +35,7 @@ function AdminPage() {
       "/admin/adminrequests": "Requests",
       "/admin/enrollment": "Enrollment",
       "/admin/Report": "Reports",
+      "/admin/venueAdding": "Venue",
     };
 
     const label = pathToLabelMap[location.pathname];
@@ -48,6 +50,8 @@ function AdminPage() {
         return <Enrollment />;
       case "Reports":
         return <Reports />;
+      case "Venue":
+        return <VenueAdding />; // Assuming VenueAdding is imported
       default:
         return null;
     }

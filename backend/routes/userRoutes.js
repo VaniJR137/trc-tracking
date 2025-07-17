@@ -15,7 +15,8 @@ router.get(
   authenticateToken,userController.getComplaintsByTechnician
 );
 router.get("/technician", authenticateToken,userController.getTechnicianUsers);
-
+router.post("/addDepartment", authenticateToken, userController.addDepartment);
+router.post("/addVenue", authenticateToken, userController.addVenue);
 router.get("/complaintsAdmin",authenticateToken, userController.getAllComplaints);
 router.post("/addbyadmin", authenticateToken,userController.addByAdmin);
 router.put(
@@ -31,5 +32,7 @@ router.put(
   "/complaints/:id/update",
   authenticateToken,userController.updateComplaint
 );
+router.get("/getDepartments", authenticateToken, userController.getDepartments);
+router.get("/getVenues", authenticateToken, userController.getVenues);
 
 module.exports = router;

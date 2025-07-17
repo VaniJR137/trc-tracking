@@ -160,6 +160,56 @@ const ComplaintDetails = sequelize.define(
     timestamps: true, // Automatically adds createdAt and updatedAt
   }
 );
+const Department = sequelize.define(
+  "department",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    departmentName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false, // Adds createdAt and updatedAt
+  }
+);
+const Venue = sequelize.define(
+  "venue",
+  {
+    venueId: {
+      type: DataTypes.STRING(100), // Integer ID as per SQL
+      allowNull: false,
+      primaryKey: true, // Primary key
+      unique: true, // Ensure uniqueness
+      // No autoIncrement: true
+    },
+    department_id: {
+      type: DataTypes.INTEGER, // Should match Department's primary key type
+      allowNull: false,
+    },
+    venueName: {
+      type: DataTypes.STRING(100), // VARCHAR(100)
+      allowNull: false,
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false, // Disable createdAt and updatedAt
+  }
+);
 
 
-module.exports = { UserMail , UserCredential , UserDetails, ComplaintDetails};
+module.exports = {
+  UserMail,
+  UserCredential,
+  UserDetails,
+  ComplaintDetails,
+  Department,
+  Venue
+};
