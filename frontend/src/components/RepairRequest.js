@@ -67,7 +67,7 @@ function RepairRequest() {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("token");
         const response = await fetch(
           "http://localhost:5000/api/getDepartments",
           {
@@ -90,7 +90,7 @@ function RepairRequest() {
 
     const fetchVenues = async () => {
       try {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("token");
         const response = await fetch("http://localhost:5000/api/getVenues", {
           headers: { Authorization: `Bearer ${token}` },
         });

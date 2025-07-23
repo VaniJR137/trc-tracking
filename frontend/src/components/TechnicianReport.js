@@ -31,7 +31,7 @@ const TechnicianReport = () => {
   const [complaints, setComplaints] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
-      const token = localStorage.getItem("authToken"); // 🔑 Get token
+      const token = localStorage.getItem("token"); // 🔑 Get token
 
       try {
         const response = await fetch(
@@ -202,7 +202,7 @@ const handleRemarkSubmit = async () => {
 
 const updateCommentsInDB = async (id, remarks) => {
   try {
-    const token = localStorage.getItem("authToken"); // 🔑 Get token
+    const token = localStorage.getItem("token"); // 🔑 Get token
 
     const response = await fetch(`http://localhost:5000/api/comments/${id}`, {
       method: "PUT",

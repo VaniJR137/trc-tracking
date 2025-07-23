@@ -16,7 +16,7 @@ function Enrollment() {
       const adminData = { Id, name, phone, password, role };
 
       try {
-        const token = localStorage.getItem("authToken"); // 🔑 Get token
+        const token = localStorage.getItem("token"); // 🔑 Get token
 
         const response = await fetch("http://localhost:5000/api/addByAdmin", {
           method: "POST",

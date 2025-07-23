@@ -31,7 +31,7 @@ const AdminRequest = () => {
   const [complaints, setComplaints] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
-      const token = localStorage.getItem("authToken"); // 🔑 Get JWT token
+      const token = localStorage.getItem("token"); // 🔑 Get JWT token
 
       try {
         const response = await fetch(
@@ -96,7 +96,7 @@ const AdminRequest = () => {
   const [technicians, setTechnicians] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
-      const token = localStorage.getItem("authToken"); // 🔑 Get JWT token
+      const token = localStorage.getItem("token"); // 🔑 Get JWT token
 
       try {
         const response = await fetch(`http://localhost:5000/api/technician`, {
@@ -159,7 +159,7 @@ const AdminRequest = () => {
  
   
   const handleSavebuttonUpdate = async (id) => {
-    const token = localStorage.getItem("authToken"); // 🔑 Get JWT token
+    const token = localStorage.getItem("token"); // 🔑 Get JWT token
 
     const updated = updatedComplaints[id];
     const name = updated?.technicianName || "";
@@ -220,7 +220,7 @@ const AdminRequest = () => {
   
 
   const handleComplete = async (id) => {
-    const token = localStorage.getItem("authToken"); // 🔑 Get token
+    const token = localStorage.getItem("token"); // 🔑 Get token
 
     try {
       const response = await fetch(
@@ -269,7 +269,7 @@ const AdminRequest = () => {
   };
   
   const updateAcceptanceInDB = async (id, acceptance, remarks = "") => {
-    const token = localStorage.getItem("authToken"); // 🔑 Get token
+    const token = localStorage.getItem("token"); // 🔑 Get token
 
     try {
       const response = await fetch(

@@ -64,7 +64,7 @@ exports.loginWithCredentials = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-      token, // ⬅️ send token to frontend
+      token, 
       role: user.role,
     });
   } catch (error) {

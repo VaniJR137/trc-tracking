@@ -12,7 +12,7 @@ function VenueAdding() {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const token = localStorage.getItem("authToken");
+        const token = localStorage.getItem("token");
         const response = await fetch(
           "http://localhost:5000/api/getDepartments",
           {
@@ -41,7 +41,7 @@ function VenueAdding() {
         : "http://localhost:5000/api/addDepartment";
 
     try {
-      const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem("token");
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -106,20 +106,6 @@ function VenueAdding() {
             {mode === "venue" && (
               <div className="space-y-8">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-700">
-                    Venue ID
-                  </label>
-                  <input
-                    type="text"
-                    value={venueId}
-                    onChange={(e) => setVenueId(e.target.value.toUpperCase())}
-                    className="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
-                    placeholder="E.g., VENUE101"
-                    required
-                  />
-                </div>
-
-                <div>
                   <label className="block text-sm mb-2 font-medium text-gray-700">
                     Select Department
                   </label>
@@ -136,6 +122,19 @@ function VenueAdding() {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    Venue ID
+                  </label>
+                  <input
+                    type="text"
+                    value={venueId}
+                    onChange={(e) => setVenueId(e.target.value.toUpperCase())}
+                    className="mt-1 w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring focus:border-blue-300"
+                    placeholder="E.g., VENUE101"
+                    required
+                  />
                 </div>
 
                 <div>
@@ -180,10 +179,10 @@ function VenueAdding() {
               </div>
             )}
 
-            <div className="pt-4">
+            <div className="pt-4 flex mb-4 justify-center items-center">
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition"
+                className="w-[200px] flex mb-4 justify-center items-center  bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition"
               >
                 {mode === "venue" ? "Add Venue" : "Add Department"}
               </button>

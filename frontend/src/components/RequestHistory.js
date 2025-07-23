@@ -24,7 +24,7 @@ const RequestHistory = () => {
   const [complaints, setComplaints] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
-      const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem("token");
       console.log("Using token:", token);
 
       if (!token) {

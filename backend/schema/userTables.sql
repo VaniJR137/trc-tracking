@@ -11,7 +11,7 @@ CREATE TABLE login (
 );
 
 CREATE TABLE userdetails (
-    rollnumber INT PRIMARY KEY,
+    rollnumber varchar(255) PRIMARY KEY,
     name VARCHAR(100),
     mailid VARCHAR(100) UNIQUE,
     role VARCHAR(10) CHECK (role IN ('Student', 'Faculty')),
@@ -45,10 +45,10 @@ CREATE TABLE complaint_details (
 );
 create table department (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL UNIQUE
+  departmentName VARCHAR(100) NOT NULL UNIQUE
 );
 create table venue (
-  venue_id INT NOT NULL PRIMARY KEY,
+  venueId varchar(100)NOT NULL PRIMARY KEY,
   department_id INT NOT NULL,
   venueName VARCHAR(100) NOT NULL,
   FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE CASCADE ON UPDATE CASCADE

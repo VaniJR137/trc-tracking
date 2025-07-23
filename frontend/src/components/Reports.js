@@ -33,7 +33,7 @@ const MonthlyReports = () => {
   const [complaints, setComplaints] = useState([]);
   useEffect(() => {
     const fetchComplaints = async () => {
-      const token = localStorage.getItem("authToken"); // 🔑 Retrieve JWT token
+      const token = localStorage.getItem("token"); 
 
       try {
         const response = await fetch(
@@ -41,7 +41,7 @@ const MonthlyReports = () => {
           {
             method: "GET",
             headers: {
-              Authorization: `Bearer ${token}`, // ✅ Pass token in Authorization header
+              Authorization: `Bearer ${token}`, 
             },
           }
         );
