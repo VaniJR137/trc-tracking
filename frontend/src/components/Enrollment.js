@@ -47,7 +47,7 @@ function Enrollment() {
 
   return (
     <div
-      className={`relative mb-8 flex flex-col transform transition-all mt-8 duration-500 ease-in-out
+      className={`relative mb-8 flex flex-col transform transition-all mt-6 duration-500 ease-in-out
     ${!open ? "md:left-32" : "md:left-12 md:w-auto "} ml-4
     w-[120%] sm:w-[100%] `}
     >
