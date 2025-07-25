@@ -45,7 +45,10 @@ CREATE TABLE complaint_details (
 );
 create table department (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  departmentName VARCHAR(100) NOT NULL UNIQUE
+  departmentName VARCHAR(100) NOT NULL UNIQUE,
+  departmentCode VARCHAR(10) NOT NULL UNIQUE
+
+
 );
 create table venue (
   venueId varchar(100)NOT NULL PRIMARY KEY,

@@ -94,11 +94,12 @@ exports.addByAdmin = async (req, res) => {
 };
 
 exports.addDepartment = async (req, res) => {
-  const { departmentName } = req.body;
+  const { departmentName,departmentCode } = req.body;
 
   try {
     await Department.create({
       departmentName,
+      departmentCode
     });
 
     return res.status(201).json({ message: "Department successfully added" });

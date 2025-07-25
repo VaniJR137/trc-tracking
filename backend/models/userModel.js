@@ -173,12 +173,18 @@ const Department = sequelize.define(
       allowNull: false,
       unique: true,
     },
+    departmentCode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
   },
   {
     freezeTableName: true,
-    timestamps: false, // Adds createdAt and updatedAt
+    timestamps: false,
   }
 );
+
 const Venue = sequelize.define(
   "venue",
   {
