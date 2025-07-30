@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { userStore, sidebarStore } from "../store/userStore";
 import { User } from "lucide-react";
 function RepairRequest() {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
+
   const { activeUser, clearUser } = userStore();
   const { open } = sidebarStore();
   const [systemType, setSystemType] = useState("");
@@ -29,7 +31,7 @@ function RepairRequest() {
       const token = localStorage.getItem("token"); // ✅ Get token from localStorage
 
       const response = await fetch(
-        "http://localhost:5000/api/requestComplaint",
+        `${BASE_URL}/requestComplaint`,
         {
           method: "POST",
           headers: {
@@ -64,34 +66,33 @@ function RepairRequest() {
   };
   const [departmentList, setDepartmentList] = useState([]);
   const [venueList, setVenueList] = useState([]);
+  const [systemTypes, setSystemTypes] = useState([]);
+  const [systemFaults, setSystemFaults] = useState([]);
   useEffect(() => {
+    const token = localStorage.getItem("token");
+
     const fetchDepartments = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(
-          "http://localhost:5000/api/getDepartments",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await fetch(`${BASE_URL}/getDepartments`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const data = await response.json();
 
         if (Array.isArray(data)) {
-          setDepartmentList(data); // ✅ Set only if it's an array
+          setDepartmentList(data);
         } else {
           console.error("Expected departments as array, received:", data);
-          setDepartmentList([]); // ✅ Default to empty array
+          setDepartmentList([]);
         }
       } catch (error) {
         console.error("Error fetching departments:", error);
-        setDepartmentList([]); // ✅ Prevent UI break
+        setDepartmentList([]);
       }
     };
 
     const fetchVenues = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/getVenues", {
+        const response = await fetch(`${BASE_URL}/getVenues`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
@@ -100,17 +101,59 @@ function RepairRequest() {
           setVenueList(data);
         } else {
           console.error("Expected venues as array, received:", data);
-          setVenueList([]); // ✅ Default to empty array
+          setVenueList([]);
         }
       } catch (error) {
         console.error("Error fetching venues:", error);
-        setVenueList([]); // ✅ Prevent UI break
+        setVenueList([]);
       }
     };
 
+    const fetchSystemTypes = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/get-system-types`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setSystemTypes(data); // Assuming setSystemTypes is a useState setter
+        } else {
+          console.error("Expected system types as array, received:", data);
+          setSystemTypes([]);
+        }
+      } catch (error) {
+        console.error("Error fetching system types:", error);
+        setSystemTypes([]);
+      }
+    };
+
+    const fetchSystemFaults = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/get-system-faults`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setSystemFaults(data); // Assuming setSystemFaults is a useState setter
+        } else {
+          console.error("Expected system faults as array, received:", data);
+          setSystemFaults([]);
+        }
+      } catch (error) {
+        console.error("Error fetching system faults:", error);
+        setSystemFaults([]);
+      }
+    };
+
+    // Call all fetchers
     fetchDepartments();
     fetchVenues();
+    fetchSystemTypes();
+    fetchSystemFaults();
   }, []);
+
 
   //   const departmentList = [
   //     { name: "Biomedical Engineering", code: "BME" },
@@ -266,16 +309,15 @@ function RepairRequest() {
                 <select
                   value={systemType}
                   onChange={(e) => setSystemType(e.target.value)}
-                  className="w-full border border-gray-300 rounded-lg p-2"
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm"
                   required
                 >
                   <option value="">-- Select System Type --</option>
-                  <option value="Desktop">Desktop</option>
-                  <option value="Laptop">Laptop</option>
-                  <option value="Projector">Projector</option>
-                  <option value="Printer">Printer</option>
-                  <option value="Speaker">Speaker</option>
-                  <option value="TV">TV</option>
+                  {systemTypes.map((venue) => (
+                    <option key={venue.id} value={venue.typeName}>
+                      {venue.typeName}
+                    </option>
+                  ))}
                 </select>
               </div>
               {/* Serial Number */}
@@ -294,43 +336,26 @@ function RepairRequest() {
               </div>
               {/* Lab */}
               {/* Problem Description */}
-              <div>
+              <div className="">
                 <label className="block font-semibold text-gray-700 mb-1 text-md">
                   Problem Description
                 </label>
 
-                {problemType !== "Others" ? (
                   <select
                     value={problemType}
                     onChange={(e) => setProblemType(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg p-2"
+                  className="w-full border  border-gray-300 rounded-lg p-2"
+                  
                     required
                   >
-                    <option value="">-- Select Problem --</option>
-                    <option value="No Display">No Display</option>
-                    <option value="Booting Issue">Booting Issue</option>
-                    <option value="Keyboard/Mouse Issue">
-                      Keyboard/Mouse Issue
+                  <option value="">-- Select System Type --</option>
+                  {systemFaults.map((venue) => (
+                    <option key={venue.id} value={venue.faultName}>
+                      {venue.faultName}
                     </option>
-                    <option value="Software Installation">
-                      Software Installation
-                    </option>
-                    <option value="Network Problem">Network Problem</option>
-                    <option value="Others">Others</option>
+                  ))}
                   </select>
-                ) : (
-                  <input
-                    type="text"
-                    placeholder="Enter problem description"
-                    className="w-full border border-gray-300 rounded-lg p-2"
-                    value={otherProblem}
-                    onChange={(e) => setOtherProblem(e.target.value)}
-                    onBlur={(e) => {
-                      if (!e.target.value.trim()) setProblemType("");
-                    }}
-                    required
-                  />
-                )}
+               
               </div>
               <div>
                 {" "}

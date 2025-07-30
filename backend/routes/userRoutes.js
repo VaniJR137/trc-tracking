@@ -34,5 +34,10 @@ router.put(
 );
 router.get("/getDepartments", authenticateToken, userController.getDepartments);
 router.get("/getVenues", authenticateToken, userController.getVenues);
+router.post("/add-system-type", authenticateToken, userController.addSystemType);
+router.get("/get-system-types", authenticateToken, userController.getSystemTypes);
+
+router.post("/add-system-fault", authenticateToken, userController.addSystemFault);
+router.get("/get-system-faults", authenticateToken,userController.getSystemFaults);
 
 module.exports = router;

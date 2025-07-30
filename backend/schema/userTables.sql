@@ -45,14 +45,20 @@ CREATE TABLE complaint_details (
 );
 create table department (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  departmentName VARCHAR(100) NOT NULL UNIQUE,
-  departmentCode VARCHAR(10) NOT NULL UNIQUE
-
-
+  departmentName VARCHAR(100) NOT NULL UNIQUE
 );
 create table venue (
   venueId varchar(100)NOT NULL PRIMARY KEY,
   department_id INT NOT NULL,
   venueName VARCHAR(100) NOT NULL,
   FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE system_type (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  typeName VARCHAR(100) NOT NULL UNIQUE
+);
+CREATE TABLE system_fault (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  faultName VARCHAR(100) NOT NULL UNIQUE
 );

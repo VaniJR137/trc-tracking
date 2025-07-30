@@ -10,6 +10,8 @@ const clientId =
   "33140679138-lp44646717dfk1vpor9gdbhb17thq3kf.apps.googleusercontent.com";
 
 export default function LoginPage() {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
+
   const navigate = useNavigate();
   const [userid, setUserId] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +19,7 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userid, password }),
@@ -102,7 +104,7 @@ export default function LoginPage() {
                   const decodedGoogle = jwtDecode(response.credential);
                   const emailid = DOMPurify.sanitize(decodedGoogle.email);
 
-                  const res = await fetch("http://localhost:5000/api/auth/google", {
+                  const res = await fetch(`${BASE_URL}/auth/google`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ emailid }),

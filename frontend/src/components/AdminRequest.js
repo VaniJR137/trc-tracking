@@ -17,12 +17,18 @@ import { userStore, sidebarStore } from "../store/userStore";
 import RemarksPopup from "./RemarksPopup";
 
 const AdminRequest = () => {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
+
   const { activeUser, clearUser } = userStore();
   const { open } = sidebarStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Pending");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [isEditing, setIsEditing] = useState({});
+  const [showTypeForm, setShowTypeForm] = useState(false);
+  const [showFaultForm, setShowFaultForm] = useState(false);
+  const [systemType, setSystemType] = useState("");
+  const [systemFault, setSystemFault] = useState("");
   const [remarkPopup, setRemarkPopup] = useState({
     open: false,
     faultId: null,
@@ -35,7 +41,7 @@ const AdminRequest = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/complaintsAdmin`,
+          `${BASE_URL}/complaintsAdmin`,
           {
             method: "GET",
             headers: {
@@ -59,38 +65,38 @@ const AdminRequest = () => {
       fetchComplaints();
     }
   }, [activeUser.infoid]);
-  
- 
+
+
 
   const filteredComplaints = complaints.filter((complaint) => {
-     const searchFields = [
-       complaint.id,
-       complaint.userId,
-       complaint.name,
-       complaint.rollno,
-       complaint.mailid,
-       complaint.role,
-       complaint.department,
-       complaint.batch,
-       complaint.systemType,
-       complaint.serialNumber,
-       complaint.rdepartment,
-       complaint.lab,
-       complaint.problemType,
-       complaint.details,
-       complaint.technicianInfo,
-     ];
- 
-     const matchesSearch = searchFields.some((field) =>
-       field?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-     );
- 
-     const matchesStatus =
-       statusFilter === "all" || complaint.status === statusFilter;
- 
-   
-     return matchesSearch && matchesStatus ;
-   });
+    const searchFields = [
+      complaint.id,
+      complaint.userId,
+      complaint.name,
+      complaint.rollno,
+      complaint.mailid,
+      complaint.role,
+      complaint.department,
+      complaint.batch,
+      complaint.systemType,
+      complaint.serialNumber,
+      complaint.rdepartment,
+      complaint.lab,
+      complaint.problemType,
+      complaint.details,
+      complaint.technicianInfo,
+    ];
+
+    const matchesSearch = searchFields.some((field) =>
+      field?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const matchesStatus =
+      statusFilter === "all" || complaint.status === statusFilter;
+
+
+    return matchesSearch && matchesStatus;
+  });
   const [updatedComplaints, setUpdatedComplaints] = useState({});
   const [editAcceptance, setEditAcceptance] = useState({});
   const [technicians, setTechnicians] = useState([]);
@@ -99,7 +105,7 @@ const AdminRequest = () => {
       const token = localStorage.getItem("token"); // 🔑 Get JWT token
 
       try {
-        const response = await fetch(`http://localhost:5000/api/technician`, {
+        const response = await fetch(`${BASE_URL}/technician`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`, // ✅ Attach token
@@ -119,8 +125,8 @@ const AdminRequest = () => {
 
     fetchComplaints();
   }, []);
-  
-  
+
+
 
   const handleFieldChange = (id, field, value) => {
     setUpdatedComplaints((prev) => {
@@ -156,8 +162,8 @@ const AdminRequest = () => {
   //     alert("Error saving update.");
   //   }
   // };
- 
-  
+
+
   const handleSavebuttonUpdate = async (id) => {
     const token = localStorage.getItem("token"); // 🔑 Get JWT token
 
@@ -168,7 +174,7 @@ const AdminRequest = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/complaints/${id}/update`,
+        `${BASE_URL}/complaints/${id}/update`,
         {
           method: "PUT",
           headers: {
@@ -191,11 +197,11 @@ const AdminRequest = () => {
         prev.map((fault) =>
           fault.id === id
             ? {
-                ...fault,
-                technicianId: updated?.technicianId,
-                technicianInfo,
-                status: updated?.status || "Ongoing",
-              }
+              ...fault,
+              technicianId: updated?.technicianId,
+              technicianInfo,
+              status: updated?.status || "Ongoing",
+            }
             : fault
         )
       );
@@ -214,17 +220,17 @@ const AdminRequest = () => {
       alert("Failed to update technician info. Please try again.");
     }
   };
-  
-  
-  
-  
+
+
+
+
 
   const handleComplete = async (id) => {
     const token = localStorage.getItem("token"); // 🔑 Get token
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/complaints/${id}/update`,
+        `${BASE_URL}/complaints/${id}/update`,
         {
           method: "PUT",
           headers: {
@@ -253,27 +259,27 @@ const AdminRequest = () => {
       alert("Failed to mark complaint as completed. Please try again.");
     }
   };
-  
-  
+
+
   const handleRemarkSubmit = async () => {
     const { faultId } = remarkPopup;
     await updateAcceptanceInDB(faultId, "Rejected", remarkText);
     handleFieldChange(faultId, "Acceptance", "Rejected");
     setUpdatedComplaints((prev) => {
       const newData = { ...prev };
-      delete newData[faultId]; // remove if needed
+      delete newData[faultId];
       return newData;
     });
     setRemarkPopup({ open: false, faultId: null });
     setRemarkText("");
   };
-  
+
   const updateAcceptanceInDB = async (id, acceptance, remarks = "") => {
     const token = localStorage.getItem("token"); // 🔑 Get token
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/complaints/${id}/acceptance`,
+        `${BASE_URL}/complaints/${id}/acceptance`,
         {
           method: "PUT",
           headers: {
@@ -292,8 +298,67 @@ const AdminRequest = () => {
       alert("Error updating acceptance:", error);
     }
   };
+
   
-  
+  const handleTypeSubmit = async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`${BASE_URL}/add-system-type`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ typeName: systemType }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Server error while adding system type");
+      }
+
+      alert("System type added successfully.");
+      setSystemType("");
+      setShowTypeForm(false);
+    } catch (error) {
+      console.error("Failed to add system type:", error);
+      alert("Failed to add system type. Please try again.");
+    }
+  };
+
+
+  const handleFaultSubmit = async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`${BASE_URL}/add-system-fault`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ faultName: systemFault }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Server error while adding system fault");
+      }
+
+      alert("System fault added successfully.");
+      setSystemFault("");
+      setShowFaultForm(false);
+    } catch (error) {
+      console.error("Failed to add system fault:", error);
+      alert("Failed to add system fault. Please try again.");
+    }
+  };
+
+
+
 
   return (
     <div
@@ -302,11 +367,9 @@ const AdminRequest = () => {
   w-[20%] sm:w-[80%] md:w-[100%] lg:w-[100%] mx-auto px-2`}
     >
       <div
-        className={`${
-          open ? "md:max-w-2xl sm:max-w-xl  lg:max-w-5xl" : "w-[900px]  "
-        } mx-auto`}
+        className={`${open ? "md:max-w-2xl sm:max-w-xl  lg:max-w-5xl" : "w-[900px]  "
+          } mx-auto`}
       >
-        {/* Header */}
         <div className="mb-4 flex items-center justify-between  ">
           <h1 className="text-xl font-bold text-hardColor ">
             Technical Faults Management
@@ -317,42 +380,133 @@ const AdminRequest = () => {
           </div>
         </div>
 
-        {/* Filters + Search */}
         <div className="bg-white rounded shadow p-3 sm:p-6 mb-4">
-                  <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                    <div className="flex flex-col sm:flex-row gap-4 w-full">
-                      <div className="relative w-full sm:max-w-md">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
-                        <input
-                          type="text"
-                          placeholder="Search faults or keywords..."
-                          value={searchTerm}
-                          onChange={(e) => setSearchTerm(e.target.value)}
-                          className="pl-10 pr-10 py-2 w-full border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        />
-                        {searchTerm && (
-                          <button
-                            onClick={() => setSearchTerm("")}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-red-500 text-sm"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-        
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="border border-gray-300 rounded px-3 py-2 text-sm w-full sm:w-auto"
+          <div className="flex flex-col md:flex-row gap-4  justify-between">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 w-full">
+  {/* Left side: Search + Filter */}
+  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 flex-grow">
+    {/* Search Input */}
+    <div className="relative w-full sm:max-w-md">
+      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4 sm:w-5 sm:h-5" />
+      <input
+        type="text"
+        placeholder="Search faults or keywords..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="pl-10 pr-10 py-2 w-full border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+      {searchTerm && (
+        <button
+          onClick={() => setSearchTerm("")}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-red-500 text-sm"
+        >
+          ✕
+        </button>
+      )}
+    </div>
+
+    {/* Status Filter */}
+    <select
+      value={statusFilter}
+      onChange={(e) => setStatusFilter(e.target.value)}
+      className="border border-gray-300 rounded px-3 py-2 text-sm w-full sm:w-auto"
+    >
+      <option value="Pending">Pending</option>
+      <option value="Ongoing">In Progress</option>
+      <option value="Completed">Resolved</option>
+      <option value="all">All</option>
+    </select>
+  </div>
+
+  {/* Right side: Buttons */}
+  <div className="flex gap-2 mt-2 sm:mt-0">
+    <button
+      onClick={() => setShowTypeForm(!showTypeForm)}
+      className="bg-blue-600 text-white text-lg py-1 px-4 rounded-md hover:bg-blue-700 transition duration-300"
+    >
+      System Type +
+    </button>
+    <button
+      onClick={() => setShowFaultForm(true)}
+      className="bg-blue-600 text-white text-lg py-1 px-4 rounded-md hover:bg-blue-700 transition duration-300"
+    >
+      System Fault +
+    </button>
+  </div>
+</div>
+
+           
+            {showTypeForm && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-md shadow-lg w-96 relative">
+                  <h2 className="text-lg font-semibold mb-4">Add System Type</h2>
+
+                  <form onSubmit={handleTypeSubmit}>
+                    <input
+                      type="text"
+                      value={systemType}
+                      onChange={(e) => setSystemType(e.target.value)}
+                      placeholder="Enter system type"
+                      className="w-full border px-3 py-2 rounded-md mb-4"
+                      required
+                    />
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowTypeForm(false)}
+                        className="bg-gray-400 text-white px-4 py-1 rounded-md"
                       >
-                        <option value="Pending">Pending</option>
-                        <option value="Ongoing">In Progress</option>
-                        <option value="Completed">Resolved</option>
-                        <option value="all">All</option>
-                      </select>
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="bg-blue-700 text-white px-4 py-1 rounded-md"
+                      >
+                        Submit
+                      </button>
                     </div>
+                  </form>
+
+                </div>
+              </div>
+            )}
+
+
+              {showFaultForm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white p-6 rounded-md shadow-lg w-96 relative">
+                    <h2 className="text-lg font-semibold mb-4">Add System Fault</h2>
+                    <form onSubmit={handleFaultSubmit}>
+                      <input
+                        type="text"
+                        value={systemFault}
+                        onChange={(e) => setSystemFault(e.target.value)}
+                        placeholder="Enter fault"
+                        className="w-full border px-3 py-2 rounded-md mb-4"
+                        required
+                      />
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowFaultForm(false)}
+                          className="bg-gray-400 text-white px-4 py-1 rounded-md"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="bg-blue-700 text-white px-4 py-1 rounded-md"
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
+              )}
+            
+          </div>
+        </div>
 
         {/* Table */}
         <div className="bg-white  rounded shadow overflow-x-auto max-h-[320px] overflow-y-auto p-2 scrollbar-thin">
@@ -450,15 +604,14 @@ const AdminRequest = () => {
                             [fault.id]: true,
                           }))
                         }
-                        className={`px-3 py-1 rounded text-white ${
-                          (updatedComplaints[fault.id]?.Acceptance ||
+                        className={`px-3 py-1 rounded text-white ${(updatedComplaints[fault.id]?.Acceptance ||
                             fault.Acceptance) === "Approved"
                             ? "bg-green-600"
                             : (updatedComplaints[fault.id]?.Acceptance ||
-                                fault.Acceptance) === "Rejected"
-                            ? "bg-red-600"
-                            : "bg-yellow-500"
-                        }`}
+                              fault.Acceptance) === "Rejected"
+                              ? "bg-red-600"
+                              : "bg-yellow-500"
+                          }`}
                       >
                         {updatedComplaints[fault.id]?.Acceptance ||
                           fault.Acceptance ||
@@ -518,11 +671,10 @@ const AdminRequest = () => {
                   {/* Technician Info Column: Name - Phone */}
                   <td className="px-4 py-2">
                     {updatedComplaints[fault.id]?.technicianName &&
-                    updatedComplaints[fault.id]?.technicianPhone ? (
+                      updatedComplaints[fault.id]?.technicianPhone ? (
                       <span className="text-gray-700 font-medium">
-                        {`${updatedComplaints[fault.id].technicianName} - ${
-                          updatedComplaints[fault.id].technicianPhone
-                        }`}
+                        {`${updatedComplaints[fault.id].technicianName} - ${updatedComplaints[fault.id].technicianPhone
+                          }`}
                       </span>
                     ) : fault.technicianInfo ? (
                       <span className="text-gray-700 font-medium">
@@ -558,8 +710,8 @@ const AdminRequest = () => {
                   <td className="px-4 py-2 space-x-2">
                     {(updatedComplaints[fault.id]?.Acceptance === "Approved" ||
                       fault.Acceptance === "Approved") &&
-                    updatedComplaints[fault.id]?.status !== "Completed" &&
-                    fault.status !== "Completed" ? (
+                      updatedComplaints[fault.id]?.status !== "Completed" &&
+                      fault.status !== "Completed" ? (
                       <>
                         {isEditing[fault.id] || !fault.technicianId ? (
                           <button

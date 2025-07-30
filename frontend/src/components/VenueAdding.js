@@ -2,6 +2,8 @@ import React, { useState, useEffect,useRef } from "react";
 import { userStore, sidebarStore } from "../store/userStore";
 
 function VenueAdding() {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
+
   const { open } = sidebarStore();
   const [mode, setMode] = useState("venue");
   const [venueId, setVenueId] = useState("");
@@ -33,8 +35,8 @@ const uploadCSV = async () => {
 
     const endpoint =
       mode === "venue"
-        ? "http://localhost:5000/api/bulk-upload/venues"
-        : "http://localhost:5000/api/bulk-upload/departments";
+        ? `${BASE_URL}/bulk-upload/venues`
+        : `${BASE_URL}/bulk-upload/departments`;
 
     const res = await fetch(endpoint, {
       method: "POST",
@@ -67,7 +69,7 @@ const uploadCSV = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://localhost:5000/api/getDepartments",
+          `${BASE_URL}/getDepartments`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -90,8 +92,8 @@ const uploadCSV = async () => {
 
     const endpoint =
       mode === "venue"
-        ? "http://localhost:5000/api/addVenue"
-        : "http://localhost:5000/api/addDepartment";
+        ? `${BASE_URL}/addVenue`
+        : `${BASE_URL}/addDepartment`;
 
     try {
       const token = localStorage.getItem("token");

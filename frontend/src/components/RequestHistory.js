@@ -15,6 +15,8 @@ import {
 import { userStore, sidebarStore } from "../store/userStore";
 
 const RequestHistory = () => {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
+
   const { activeUser, clearUser } = userStore();
   const { open } = sidebarStore();
   const [searchTerm, setSearchTerm] = useState("");
@@ -34,7 +36,7 @@ const RequestHistory = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/complaints/${activeUser.infoid}`,
+          `${BASE_URL}/complaints/${activeUser.infoid}`,
           {
             method: "GET",
             headers: {

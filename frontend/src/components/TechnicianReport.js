@@ -17,6 +17,8 @@ import { userStore, sidebarStore } from "../store/userStore";
 import RemarksPopup from "./RemarksPopup";
 
 const TechnicianReport = () => {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
+
   const { activeUser, clearUser } = userStore();
   const { open } = sidebarStore();
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,7 +37,7 @@ const TechnicianReport = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/complainttechnician/${activeUser.infoid}`,
+          `${BASE_URL}/complainttechnician/${activeUser.infoid}`,
           {
             method: "GET",
             headers: {
@@ -204,7 +206,7 @@ const updateCommentsInDB = async (id, remarks) => {
   try {
     const token = localStorage.getItem("token"); // 🔑 Get token
 
-    const response = await fetch(`http://localhost:5000/api/comments/${id}`, {
+    const response = await fetch(`${BASE_URL}/comments/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

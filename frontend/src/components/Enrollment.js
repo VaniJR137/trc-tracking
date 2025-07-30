@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { userStore, sidebarStore } from "../store/userStore";
 import { Eye, EyeOff } from "lucide-react"; 
 function Enrollment() {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
+
   const [Id, setId] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -18,7 +20,7 @@ function Enrollment() {
       try {
         const token = localStorage.getItem("token"); // 🔑 Get token
 
-        const response = await fetch("http://localhost:5000/api/addByAdmin", {
+        const response = await fetch(`${BASE_URL}/addByAdmin`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

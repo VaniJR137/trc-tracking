@@ -173,18 +173,12 @@ const Department = sequelize.define(
       allowNull: false,
       unique: true,
     },
-    departmentCode: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
   },
   {
     freezeTableName: true,
-    timestamps: false,
+    timestamps: false, // Adds createdAt and updatedAt
   }
 );
-
 const Venue = sequelize.define(
   "venue",
   {
@@ -210,6 +204,51 @@ const Venue = sequelize.define(
   }
 );
 
+const SystemType = sequelize.define(
+  "system_type",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+      unique: true,
+    },
+    typeName: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false,
+  }
+);
+
+const SystemFault = sequelize.define(
+  "system_fault",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      autoIncrement: true,
+      primaryKey: true,
+      unique: true,
+    },
+    faultName: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true,
+    },
+  },
+  {
+    freezeTableName: true,
+    timestamps: false,
+  }
+);
+
+
 
 module.exports = {
   UserMail,
@@ -217,5 +256,7 @@ module.exports = {
   UserDetails,
   ComplaintDetails,
   Department,
-  Venue
+  Venue,
+  SystemType,
+  SystemFault
 };

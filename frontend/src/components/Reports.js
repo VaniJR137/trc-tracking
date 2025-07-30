@@ -16,6 +16,8 @@ import { userStore, sidebarStore } from "../store/userStore";
 import RemarksPopup from "./RemarksPopup";
 
 const MonthlyReports = () => {
+  const BASE_URL = process.env.REACT_APP_BASE_URL;
+
   const { activeUser, clearUser } = userStore();
   const { open } = sidebarStore();
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,7 +39,7 @@ const MonthlyReports = () => {
 
       try {
         const response = await fetch(
-          `http://localhost:5000/api/complaintsAdmin`,
+          `${BASE_URL}/complaintsAdmin`,
           {
             method: "GET",
             headers: {
@@ -194,7 +196,6 @@ w-[17%] sm:w-[70%] md:w-[100%] lg:w-[100%] mx-auto px-2`}
                   "Fault ID",
                   "User ID",
                   "Name",
-
                   "Email",
                   "Role",
                   "Department",

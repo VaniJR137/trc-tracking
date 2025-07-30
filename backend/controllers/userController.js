@@ -2,7 +2,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = "137inav";
 const { Op } = require("sequelize");
-const { UserMail, UserCredential,UserDetails,ComplaintDetails,Department,Venue } = require("../models/userModel");
+const { UserMail, UserCredential, UserDetails, ComplaintDetails, Department, Venue, SystemFault,SystemType } = require("../models/userModel");
 exports.loginUser = async (req, res) => {
   const { emailid } = req.body;
 
@@ -94,12 +94,11 @@ exports.addByAdmin = async (req, res) => {
 };
 
 exports.addDepartment = async (req, res) => {
-  const { departmentName,departmentCode } = req.body;
+  const { departmentName } = req.body;
 
   try {
     await Department.create({
       departmentName,
-      departmentCode
     });
 
     return res.status(201).json({ message: "Department successfully added" });
@@ -391,4 +390,50 @@ exports.updateTechnicianComments = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-  
+
+exports.addSystemType = async (req, res) => {
+  const { typeName } = req.body;
+
+  try {
+    await SystemType.create({ typeName });
+    return res.status(201).json({ message: "System type added successfully" });
+  } catch (error) {
+    console.error("Add System Type Error:", error);
+    return res.status(500).json({ message: "Failed to add system type" });
+  }
+};
+
+// Get All System Types
+exports.getSystemTypes = async (req, res) => {
+  try {
+    const types = await SystemType.findAll();
+    return res.status(200).json(types);
+  } catch (error) {
+    console.error("Get System Types Error:", error);
+    return res.status(500).json({ message: "Failed to fetch system types" });
+  }
+};
+
+// Add System Fault
+exports.addSystemFault = async (req, res) => {
+  const { faultName } = req.body;
+
+  try {
+    await SystemFault.create({ faultName });
+    return res.status(201).json({ message: "System fault added successfully" });
+  } catch (error) {
+    console.error("Add System Fault Error:", error);
+    return res.status(500).json({ message: "Failed to add system fault" });
+  }
+};
+
+// Get All System Faults
+exports.getSystemFaults = async (req, res) => {
+  try {
+    const faults = await SystemFault.findAll();
+    return res.status(200).json(faults);
+  } catch (error) {
+    console.error("Get System Faults Error:", error);
+    return res.status(500).json({ message: "Failed to fetch system faults" });
+  }
+};
